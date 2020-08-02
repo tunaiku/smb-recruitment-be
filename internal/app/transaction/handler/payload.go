@@ -12,6 +12,7 @@ type TransactionHandlerFailed struct {
 }
 
 func (resp *TransactionHandlerFailed) Render(w http.ResponseWriter, r *http.Request) error {
+	w.Header().Add("content-type", "application/json")
 	w.WriteHeader(resp.HttpCode)
 	return nil
 }

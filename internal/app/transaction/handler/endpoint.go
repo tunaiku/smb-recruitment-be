@@ -55,20 +55,20 @@ func (transactionEndpoint *TransactionEndpoint) HandleVerifyTransaction(w http.R
 	request := &VerifyTransactionRequest{}
 	id := chi.URLParam(r, "id")
 	if err := request.Bind(r); err != nil {
-		render.JSON(w, r, &TransactionHandlerFailed{
+		render.Render(w, r, &TransactionHandlerFailed{
 			HttpCode: http.StatusInternalServerError,
 			Message:  err.Error(),
 		})
 	}
 	if id != "1111" {
-		render.JSON(w, r, &TransactionHandlerFailed{
+		render.Render(w, r, &TransactionHandlerFailed{
 			HttpCode: http.StatusNotFound,
 			Message:  "transaction not found",
 		})
 		return
 	}
 	if request.Credential != "123456" {
-		render.JSON(w, r, &TransactionHandlerFailed{
+		render.Render(w, r, &TransactionHandlerFailed{
 			HttpCode: http.StatusBadRequest,
 			Message:  "invalid credential",
 		})
