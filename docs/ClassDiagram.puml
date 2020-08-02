@@ -1,120 +1,297 @@
 @startuml
-namespace parser {
-    class Alias << (S,Aquamarine) >> {
+namespace domain {
+    interface AccountInformationService  {
+        + FindTransactionDetailByCode(code string) (TransactionDetail, error)
+        + IsAccountExists(accountNumber string) bool
+        + GetTransactionPrivileges(accountNumber string) (TransactionPrivileges, error)
+
+    }
+    class AuthenticationResult << (S,Aquamarine) >> {
+        + AccessToken string
+
+    }
+    interface AuthenticationService  {
+        + Authenticate(username string, password string) (AuthenticationResult, error)
+
+    }
+    class ConfiguredCredential << (S,Aquamarine) >> {
+        + Pin *PinCredential
+        + Otp *OtpCredential
+
+        + IsPinConfigured() bool
+        + IsOtpConfigured() bool
+
+    }
+    class FindUserResult << (S,Aquamarine) >> {
+        + ID string
         + Name string
-        + PackageName string
-        + AliasOf string
+        + AccountReference string
+        + JoinAt time.Time
 
     }
-    class AliasSlice << (S,Aquamarine) >> {
-        + Len() int
-        + Less(i int, j int) bool
-        + Swap(i int, j int) 
+    class OtpCredential << (S,Aquamarine) >> {
+        + PhoneNumber string
 
     }
-    class ClassDiagramOptions << (S,Aquamarine) >> {
-        + FileSystem afero.Fs
-        + Directories []string
-        + IgnoredDirectories []string
-        + RenderingOptions <font color=blue>map</font>[RenderingOption]<font color=blue>interface</font>{}
-        + Recursive bool
+    interface OtpCredentialManager  {
+        + RequestNewOtp(userId string) error
 
     }
-    class ClassParser << (S,Aquamarine) >> {
-        - renderingOptions *RenderingOptions
-        - structure <font color=blue>map</font>[string]<font color=blue>map</font>[string]*Struct
-        - currentPackageName string
-        - allInterfaces <font color=blue>map</font>[string]<font color=blue>struct</font>{}
-        - allStructs <font color=blue>map</font>[string]<font color=blue>struct</font>{}
-        - allImports <font color=blue>map</font>[string]string
-        - allAliases <font color=blue>map</font>[string]*Alias
-        - allRenamedStructs <font color=blue>map</font>[string]<font color=blue>map</font>[string]string
-
-        - parsePackage(node ast.Node) 
-        - parseImports(impt *ast.ImportSpec) 
-        - parseDirectory(directoryPath string) error
-        - parseFileDeclarations(node ast.Decl) 
-        - handleFuncDecl(decl *ast.FuncDecl) 
-        - handleGenDecl(decl *ast.GenDecl) 
-        - renderStructures(pack string, structures <font color=blue>map</font>[string]*Struct, str *LineStringBuilder) 
-        - renderAliases(str *LineStringBuilder) 
-        - renderStructure(structure *Struct, pack string, name string, str *LineStringBuilder, composition *LineStringBuilder, extends *LineStringBuilder, aggregations *LineStringBuilder) 
-        - renderCompositions(structure *Struct, name string, composition *LineStringBuilder) 
-        - renderAggregations(structure *Struct, name string, aggregations *LineStringBuilder) 
-        - updatePrivateAggregations(structure *Struct, aggregationsMap <font color=blue>map</font>[string]<font color=blue>struct</font>{}) 
-        - renderAggregationMap(aggregationMap <font color=blue>map</font>[string]<font color=blue>struct</font>{}, structure *Struct, aggregations *LineStringBuilder, name string) 
-        - getPackageName(t string, st *Struct) string
-        - renderExtends(structure *Struct, name string, extends *LineStringBuilder) 
-        - renderStructMethods(structure *Struct, privateMethods *LineStringBuilder, publicMethods *LineStringBuilder) 
-        - renderStructFields(structure *Struct, privateFields *LineStringBuilder, publicFields *LineStringBuilder) 
-        - getOrCreateStruct(name string) *Struct
-        - getStruct(structName string) *Struct
-
-        + Render() string
-        + SetRenderingOptions(ro <font color=blue>map</font>[RenderingOption]<font color=blue>interface</font>{}) error
+    class PinCredential << (S,Aquamarine) >> {
+        + Pin string
 
     }
-    class Field << (S,Aquamarine) >> {
+    interface PinCredentialManager  {
+    }
+    class Transaction << (S,Aquamarine) >> {
+        + ID string
+        + UserID string
+        + State TransactionState
+        + AuthorizationMethod AuthorizationMethod
+        + TransactionCode string
+        + Amount *big.Float
+        + SourceAccount string
+        + DestinationAccount string
+        + CreatedAt time.Time
+
+    }
+    class TransactionCreation << (S,Aquamarine) >> {
+        + SourceAccount string
+        + DestinationAccount string
+        + TransactionCode string
+        + Amount *big.Float
+        + Currency string
+        + TransactionDate *time.Time
+
+    }
+    class TransactionDetail << (S,Aquamarine) >> {
+        + Code string
+        + MinimumAmount *big.Float
+
+    }
+    class TransactionPrivileges << (S,Aquamarine) >> {
+        + Codes []string
+
+    }
+    interface TransactionService  {
+        + CreateTransaction(transactionCreation TransactionCreation) error
+
+    }
+    class User << (S,Aquamarine) >> {
+        + ID string
         + Name string
-        + Type string
-        + FullType string
+        + AccountReference string
+        + JoinDate time.Time
+        + Username string
+        + Password string
+        + ConfiguredTransactionCredential *ConfiguredCredential
 
     }
-    class Function << (S,Aquamarine) >> {
-        + Name string
-        + Parameters []*Field
-        + ReturnValues []string
-        + PackageName string
-        + FullNameReturnValues []string
-
-        + SignturesAreEqual(function *Function) bool
+    interface UserCredentialValidator  {
+        + Validate(userId string, credential string) error
 
     }
-    class LineStringBuilder << (S,Aquamarine) >> {
-        + WriteLineWithDepth(depth int, str string) 
+    interface UserRepository  {
+        + LoadUser(id string) (*User, error)
+        + LoadByUsername(username string) (*User, error)
 
     }
-    class RenderingOptions << (S,Aquamarine) >> {
-        + Title string
-        + Notes string
-        + Aggregations bool
-        + Fields bool
-        + Methods bool
-        + Compositions bool
-        + Implementations bool
-        + Aliases bool
-        + ConnectionLabels bool
-        + AggregatePrivateMembers bool
+    interface UserService  {
+        + FindUser(userId string) (FindUserResult, error)
 
     }
-    class Struct << (S,Aquamarine) >> {
-        + PackageName string
-        + Functions []*Function
-        + Fields []*Field
-        + Type string
-        + Composition <font color=blue>map</font>[string]<font color=blue>struct</font>{}
-        + Extends <font color=blue>map</font>[string]<font color=blue>struct</font>{}
-        + Aggregations <font color=blue>map</font>[string]<font color=blue>struct</font>{}
-        + PrivateAggregations <font color=blue>map</font>[string]<font color=blue>struct</font>{}
-
-        - addToPrivateAggregation(fType string) 
-
-        + ImplementsInterface(inter *Struct) bool
-        + AddToComposition(fType string) 
-        + AddToExtends(fType string) 
-        + AddToAggregation(fType string) 
-        + AddField(field *ast.Field, aliases <font color=blue>map</font>[string]string) 
-        + AddMethod(method *ast.Field, aliases <font color=blue>map</font>[string]string) 
+    class UserSession << (S,Aquamarine) >> {
+    }
+    interface UserSessionHelper  {
+        + GetFromContext(ctx context.Context) (UserSession, error)
 
     }
-    class parser.AliasSlice << (T, #FF7700) >>  {
+    class domain.AuthorizationMethod << (T, #FF7700) >>  {
     }
-    class parser.RenderingOption << (T, #FF7700) >>  {
+    class domain.TransactionState << (T, #FF7700) >>  {
     }
 }
-"strings.Builder" *-- "parser.LineStringBuilder"
+"domain.UserCredentialValidator" *-- "domain.OtpCredentialManager"
+"domain.UserCredentialValidator" *-- "domain.PinCredentialManager"
+"domain.User" *-- "domain.UserSession"
 
 
-"__builtin__.int" #.. "parser.RenderingOption"
-"parser.[]Alias" #.. "parser.AliasSlice"
+namespace fake {
+    class FakeAccountInformationService << (S,Aquamarine) >> {
+        + FindTransactionDetailByCode(code string) (domain.TransactionDetail, error)
+        + IsAccountExists(accountNumber string) bool
+        + GetTransactionPrivileges(accountNumber string) (domain.TransactionPrivileges, error)
+
+    }
+    class FakeAccountTransactionService << (S,Aquamarine) >> {
+        + CreateTransaction(transactionCreation domain.TransactionCreation) error
+
+    }
+    class FakeOtpCredentialManager << (S,Aquamarine) >> {
+        - repository domain.UserRepository
+
+        + Validate(userId string, credential string) error
+        + RequestNewOtp(userId string) error
+
+    }
+    class FakePinCredentialManager << (S,Aquamarine) >> {
+        - repository domain.UserRepository
+
+        + Validate(userId string, credential string) error
+
+    }
+    class FakeUserService << (S,Aquamarine) >> {
+        - repository domain.UserRepository
+
+        + FindUser(userId string) (domain.FindUserResult, error)
+
+    }
+}
+
+"domain.AccountInformationService" <|-- "fake.FakeAccountInformationService"
+"domain.TransactionService" <|-- "fake.FakeAccountTransactionService"
+"domain.OtpCredentialManager" <|-- "fake.FakeOtpCredentialManager"
+"domain.UserCredentialValidator" <|-- "fake.FakeOtpCredentialManager"
+"domain.UserCredentialValidator" <|-- "fake.FakePinCredentialManager"
+"domain.UserService" <|-- "fake.FakeUserService"
+
+namespace handler {
+    class AuthenticationEndpoint << (S,Aquamarine) >> {
+        - authenticationService domain.AuthenticationService
+
+        + BindRoutes(r chi.Router) 
+        + HandleAuthenticationFlow(w http.ResponseWriter, r *http.Request) 
+
+    }
+    class AuthenticationFailedResponse << (S,Aquamarine) >> {
+        + Message string
+        + HTTPStatus int
+
+        + Render(w http.ResponseWriter, r *http.Request) error
+
+    }
+    class AuthenticationRequest << (S,Aquamarine) >> {
+        + Username string
+        + Password string
+
+        + Bind(req *http.Request) error
+
+    }
+    class AuthenticationResponse << (S,Aquamarine) >> {
+        + AccessToken string
+
+        + Render(w http.ResponseWriter, r *http.Request) error
+
+    }
+    class CreateTransactionRequest << (S,Aquamarine) >> {
+        + TransactionCode string
+        + Amount *big.Float
+        + DestinationAccount string
+        + AuthorizationMethod string
+
+        + Bind(req *http.Request) error
+
+    }
+    class CreateTransactionSuccess << (S,Aquamarine) >> {
+        + TransactionID string
+
+        + Render(w http.ResponseWriter, r *http.Request) error
+
+    }
+    class GetTransactionSuccess << (S,Aquamarine) >> {
+        + ID string
+        + Amount *big.Float
+        + DestinationAccount string
+        + State string
+
+        + Render(w http.ResponseWriter, r *http.Request) error
+
+    }
+    class TransactionEndpoint << (S,Aquamarine) >> {
+        - userSessionHelper domain.UserSessionHelper
+
+        + BindRoutes(r chi.Router) 
+        + HandleCreateTransaction(w http.ResponseWriter, r *http.Request) 
+        + HandleVerifyTransaction(w http.ResponseWriter, r *http.Request) 
+        + HandleGetTransaction(w http.ResponseWriter, r *http.Request) 
+
+    }
+    class TransactionHandlerFailed << (S,Aquamarine) >> {
+        + HttpCode int
+        + Message string
+
+        + Render(w http.ResponseWriter, r *http.Request) error
+
+    }
+    class VerifyTransactionRequest << (S,Aquamarine) >> {
+        + Credential string
+
+        + Bind(req *http.Request) error
+
+    }
+    class VerifyTransactionSuccess << (S,Aquamarine) >> {
+        + TransactionID string
+
+        + Render(w http.ResponseWriter, r *http.Request) error
+
+    }
+}
+
+
+namespace inmemory {
+    class InMemoryUserRepository << (S,Aquamarine) >> {
+        - datastore <font color=blue>map</font>[string]*domain.User
+
+        - init() 
+
+        + LoadUser(id string) (*domain.User, error)
+        + LoadByUsername(username string) (*domain.User, error)
+
+    }
+}
+
+"domain.UserRepository" <|-- "inmemory.InMemoryUserRepository"
+
+namespace jwt {
+    class jwt.ClaimsMapper << (T, #FF7700) >>  {
+    }
+    class "<font color=blue>func</font>() jwt-go.Claims" as fontcolorbluefuncfontjwtgoClaims {
+        'This class was created so that we can correctly have an alias pointing to this name. Since it contains dots that can break namespaces
+    }
+}
+
+
+namespace pg {
+    class CrudRepositoryWrapper << (S,Aquamarine) >> {
+        - db *pg.DB
+
+        + Save(model <font color=blue>interface</font>{}) error
+        + Load(model <font color=blue>interface</font>{}) error
+        + Remove(model <font color=blue>interface</font>{}) error
+
+    }
+}
+
+
+namespace service {
+    class AuthenticationServiceImpl << (S,Aquamarine) >> {
+        - repository domain.UserRepository
+
+        + Authenticate(username string, password string) (domain.AuthenticationResult, error)
+
+    }
+    class UserSessionHelperImpl << (S,Aquamarine) >> {
+        - userRepository domain.UserRepository
+
+        + GetFromContext(ctx context.Context) (domain.UserSession, error)
+
+    }
+}
+
+"domain.AuthenticationService" <|-- "service.AuthenticationServiceImpl"
+"domain.UserSessionHelper" <|-- "service.UserSessionHelperImpl"
+
+"__builtin__.int" #.. "domain.AuthorizationMethod"
+"__builtin__.int" #.. "domain.TransactionState"
+"jwt.fontcolorbluefuncfontjwtgoClaims" #.. "jwt.ClaimsMapper"
 @enduml
