@@ -1,14 +1,14 @@
 ## Prerequisite
 
-Go 1.14 or latest
+- Go 1.14 or latest
 
-WSL2, Linux or macOS
+- WSL2, Linux or macOS
 
-PostgreSQL
+- PostgreSQL
 
-Docker
+- Docker
 
-Make
+- Make
 
 
 ## Boilerplate Overview
