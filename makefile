@@ -25,7 +25,7 @@ seeddata:
 resetdata:
 	go run ${MIGRATION_SCRIPTS_PATH}/*.go reset
 .PHONY = setupdata
-setupsdata: initmigration resetdata migratetable seeddata
+setupdata: initmigration resetdata migratetable seeddata
 	echo "good to go..."
 .PHONY= e2e
 e2e:initmigration resetdata migratetable seeddata
