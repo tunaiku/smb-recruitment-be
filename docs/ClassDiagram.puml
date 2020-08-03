@@ -1,7 +1,6 @@
 @startuml
 namespace domain {
     interface AccountInformationService  {
-        + FindTransactionDetailByCode(code string) (TransactionDetail, error)
         + IsAccountExists(accountNumber string) bool
         + GetTransactionPrivileges(accountNumber string) (TransactionPrivileges, error)
 
@@ -69,6 +68,10 @@ namespace domain {
         + MinimumAmount *big.Float
 
     }
+    interface TransactionInformationService  {
+        + FindTransactionDetailByCode(code string) (TransactionDetail, error)
+
+    }
     class TransactionPrivileges << (S,Aquamarine) >> {
         + Codes []string
 
@@ -118,7 +121,6 @@ namespace domain {
 
 namespace fake {
     class FakeAccountInformationService << (S,Aquamarine) >> {
-        + FindTransactionDetailByCode(code string) (domain.TransactionDetail, error)
         + IsAccountExists(accountNumber string) bool
         + GetTransactionPrivileges(accountNumber string) (domain.TransactionPrivileges, error)
 
@@ -140,6 +142,10 @@ namespace fake {
         + Validate(userId string, credential string) error
 
     }
+    class FakeTransactionInformationService << (S,Aquamarine) >> {
+        + FindTransactionDetailByCode(code string) (domain.TransactionDetail, error)
+
+    }
     class FakeUserService << (S,Aquamarine) >> {
         - repository domain.UserRepository
 
@@ -153,6 +159,7 @@ namespace fake {
 "domain.OtpCredentialManager" <|-- "fake.FakeOtpCredentialManager"
 "domain.UserCredentialValidator" <|-- "fake.FakeOtpCredentialManager"
 "domain.UserCredentialValidator" <|-- "fake.FakePinCredentialManager"
+"domain.TransactionInformationService" <|-- "fake.FakeTransactionInformationService"
 "domain.UserService" <|-- "fake.FakeUserService"
 
 namespace handler {
