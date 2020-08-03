@@ -90,7 +90,7 @@ func TestCreateTransaction(t *testing.T) {
 					},
 				},
 				{
-					desc: " should be failed with '400' as http status code and {\"message\":\"amount not match the minimum transaction amount\"} when the amount not match the minimum transaction amount",
+					desc: " should be failed with '400' as http status code and {\"message\":\"amount does not reach the minimum transaction amount\"} when the amount not match the minimum transaction amount",
 					payload: map[string]interface{}{
 						"auth_method":         "pin",
 						"amount":              "2000",
@@ -99,7 +99,7 @@ func TestCreateTransaction(t *testing.T) {
 					},
 					responseHTTPStatus: http.StatusBadRequest,
 					responseBodyExpecter: func(resp *httpexpect.Response) {
-						resp.JSON().Object().ValueEqual("message", "amount not match the minimum transaction amount")
+						resp.JSON().Object().ValueEqual("message", "amount does not reach the minimum transaction amount")
 					},
 				},
 				{
@@ -219,7 +219,7 @@ func TestVerifyTransaction(t *testing.T) {
 					},
 				},
 				{
-					desc: " transaction should be failed with `400-Bad Request` and `{\"message\":\"invalid transaction\"}`  when the transaction state is not `WaitAuthorization` ",
+					desc: " transaction should be failed with `400-Bad Request` and `{\"message\":\"verification process already happened\"}`  when the transaction state is not `WaitAuthorization` ",
 					pathVariables: map[string]interface{}{
 						"ID": "1111",
 					},
@@ -228,7 +228,7 @@ func TestVerifyTransaction(t *testing.T) {
 					},
 					responseHTTPStatus: http.StatusBadRequest,
 					responseBodyExpecter: func(resp *httpexpect.Response) {
-						resp.JSON().Object().ValueEqual("message", "invalid transaction")
+						resp.JSON().Object().ValueEqual("message", "verification process already happened")
 					},
 				},
 				{
