@@ -10,6 +10,9 @@ func Register(container *dig.Container) {
 	container.Provide(func() domain.AccountInformationService {
 		return fake.NewFakeAccountInformationService()
 	})
+	container.Provide(func() domain.TransactionInformationService {
+		return fake.NewFakeTransactionInformationService()
+	})
 	container.Provide(func() domain.TransactionService {
 		return fake.NewFakeTransactionService()
 	})

@@ -31,9 +31,12 @@ type TransactionCreation struct {
 }
 
 type AccountInformationService interface {
-	FindTransactionDetailByCode(code string) (TransactionDetail, error)
 	IsAccountExists(accountNumber string) bool
 	GetTransactionPrivileges(accountNumber string) (TransactionPrivileges, error)
+}
+
+type TransactionInformationService interface {
+	FindTransactionDetailByCode(code string) (TransactionDetail, error)
 }
 
 type TransactionService interface {

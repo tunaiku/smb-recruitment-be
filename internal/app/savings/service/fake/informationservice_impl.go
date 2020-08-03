@@ -6,13 +6,6 @@ import (
 	"github.com/tunaiku/mobilebanking/internal/app/domain"
 )
 
-type FakeAccountInformationService struct {
-}
-
-func NewFakeAccountInformationService() *FakeAccountInformationService {
-	return &FakeAccountInformationService{}
-}
-
 var trxDetails = map[string]domain.TransactionDetail{
 	"T001": {
 		Code:          "T001",
@@ -29,12 +22,11 @@ var accountPrivileges = map[string][]string{
 	"10002": {"T001"},
 }
 
-func (impl *FakeAccountInformationService) FindTransactionDetailByCode(code string) (domain.TransactionDetail, error) {
-	trx := trxDetails[code]
-	if (trx == domain.TransactionDetail{}) {
-		return domain.TransactionDetail{}, domain.ErrTransactionDetailNotFound
-	}
-	return trx, nil
+type FakeAccountInformationService struct {
+}
+
+func NewFakeAccountInformationService() *FakeAccountInformationService {
+	return &FakeAccountInformationService{}
 }
 
 func (impl *FakeAccountInformationService) IsAccountExists(accountNumber string) bool {
@@ -46,4 +38,19 @@ func (impl *FakeAccountInformationService) GetTransactionPrivileges(accountNumbe
 		return domain.TransactionPrivileges{}, domain.ErrAccountNotFound
 	}
 	return domain.TransactionPrivileges{Codes: accountPrivileges[accountNumber]}, nil
+}
+
+type FakeTransactionInformationService struct {
+}
+
+func NewFakeTransactionInformationService() *FakeTransactionInformationService {
+	return new(FakeTransactionInformationService)
+}
+
+func (impl *FakeTransactionInformationService) FindTransactionDetailByCode(code string) (domain.TransactionDetail, error) {
+	trx := trxDetails[code]
+	if (trx == domain.TransactionDetail{}) {
+		return domain.TransactionDetail{}, domain.ErrTransactionDetailNotFound
+	}
+	return trx, nil
 }
