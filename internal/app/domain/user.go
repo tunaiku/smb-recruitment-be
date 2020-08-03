@@ -14,23 +14,28 @@ var (
 	ErrUserNotFound         error = errors.BadRequest("com.tunaiku.service.mbanking", "user not found")
 )
 
+//OtpCredential Represent user's otp credential
 type OtpCredential struct {
 	PhoneNumber string
 }
 
+//PinCredential Represent user's pin credential
 type PinCredential struct {
 	Pin string
 }
 
+//ConfiguredCredential Represent user credential
 type ConfiguredCredential struct {
 	Pin *PinCredential
 	Otp *OtpCredential
 }
 
+//IsPinConfigured it would return true if user configure pin
 func (c *ConfiguredCredential) IsPinConfigured() bool {
 	return c.Pin != nil
 }
 
+//IsOtpConfigured it would return true if user configure otp
 func (c *ConfiguredCredential) IsOtpConfigured() bool {
 	return c.Otp != nil
 }
