@@ -14,7 +14,7 @@ func Wrap(db *pg.DB) *CrudRepositoryWrapper {
 }
 
 func (wrapper *CrudRepositoryWrapper) Save(model interface{}) error {
-	_, err := wrapper.db.Model(model).OnConflict("DO UPDATE").Insert(model)
+	_, err := wrapper.db.Model(model).OnConflict("(id) DO UPDATE").Insert(model)
 	return err
 }
 
