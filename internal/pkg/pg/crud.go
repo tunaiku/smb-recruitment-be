@@ -4,6 +4,7 @@ import (
 	"github.com/go-pg/pg/v10"
 )
 
+// Refactoring crud repository
 type CrudRepositoryWrapper struct {
 	db *pg.DB
 }
@@ -13,21 +14,7 @@ func Wrap(db *pg.DB) *CrudRepositoryWrapper {
 }
 
 func (wrapper *CrudRepositoryWrapper) Save(model interface{}) error {
-	count, err := wrapper.db.Model(model).Count()
-	if err != nil {
-		return err
-	}
-	if count > 0 {
-		_, err = wrapper.db.Model(model).Update()
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-	_, err = wrapper.db.Model(model).Insert()
-	if err != nil {
-		return err
-	}
+	wrapper.db.Model(model).OnConflict("DO UPDATE").Insert(model)
 	return nil
 }
 
@@ -41,7 +28,7 @@ func (wrapper *CrudRepositoryWrapper) Load(model interface{}) error {
 }
 
 func (wrapper *CrudRepositoryWrapper) Remove(model interface{}) error {
-	err := wrapper.db.Model(model).WherePK().Select()
+	_, err := wrapper.db.Model(model).WherePK().Delete()
 	if err == pg.ErrNoRows {
 		return nil
 	}

@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"math/big"
 	"time"
 )
 
@@ -28,7 +27,7 @@ type Transaction struct {
 	State               TransactionState
 	AuthorizationMethod AuthorizationMethod
 	TransactionCode     string
-	Amount              *big.Float
+	Amount              float64
 	SourceAccount       string
 	DestinationAccount  string
 	CreatedAt           time.Time
