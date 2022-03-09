@@ -51,8 +51,20 @@ func (TransactionEndpoint *TransactionEndpoint) BindRoutes(r chi.Router) {
 
 }
 
+const (
+	ERR_INTERNAL_SERVER_MSG                       = "something went wrong"
+	ERR_TRANSACTION_CODE_NOT_FOUND_MSG            = "transaction code not found"
+	ERR_TRANSACTION_NOT_ALLOWED_MSG               = "transaction not allowed"
+	ERR_DESTINATION_ACCOUNT_NOT_FOUND_MSG         = "destination account not found"
+	ERR_MINIMUM_AMOUNT_MSG                        = "amount does not reach the minimum transaction amount"
+	ERR_AUTHORIZATION_METHOD_NOT_CONFIGURED_MSG   = "authorization method not configured"
+	ERR_UNSUPPORTED_AUTHOROZATION_METHOD_MSG      = "unsupported authorization method"
+	ERR_TRANSACTION_NOT_FOUND_MSG                 = "transaction not found"
+	ERR_VERIFICATION_PROCESS_ALREADY_HAPPENED_MSG = "verification process already happened"
+	ERR_INVALID_CREDENTIAL_MSG                    = "invalid credential"
+)
+
 // HandleCreateTransaction
-// logic sequencing should be (accoding to me)
 // Get the User Session ( if the user is valid user )
 // Decode the request body
 // Get the transaction Detail by the TransactionCode (if valid then proceed)
@@ -63,7 +75,6 @@ func (TransactionEndpoint *TransactionEndpoint) BindRoutes(r chi.Router) {
 // Create the transaction in the database with flag domain.WaitAuthorization
 // Send the Otp/Pin to the source user (printing on console in this case)
 // Send the response to the user with http 201 created
-// Some test cases fail because of wrong expected output because of sequencing logic
 func (transactionEndpoint *TransactionEndpoint) HandleCreateTransaction(w http.ResponseWriter, r *http.Request) {
 	request := &CreateTransactionRequest{}
 	userSession, err := transactionEndpoint.userSessionHelper.GetFromContext(r.Context())
@@ -71,7 +82,7 @@ func (transactionEndpoint *TransactionEndpoint) HandleCreateTransaction(w http.R
 		log.Println("userSession Error:", err)
 		render.Render(w, r, &TransactionHandlerFailed{
 			HttpCode: http.StatusInternalServerError,
-			Message:  "something went wrong",
+			Message:  ERR_INTERNAL_SERVER_MSG,
 		})
 		return
 	}
@@ -79,7 +90,7 @@ func (transactionEndpoint *TransactionEndpoint) HandleCreateTransaction(w http.R
 		log.Println("requestDecoding Error:", err)
 		render.Render(w, r, &TransactionHandlerFailed{
 			HttpCode: http.StatusInternalServerError,
-			Message:  "something went wrong",
+			Message:  ERR_INTERNAL_SERVER_MSG,
 		})
 		return
 	}
@@ -90,7 +101,7 @@ func (transactionEndpoint *TransactionEndpoint) HandleCreateTransaction(w http.R
 		log.Println("find transaction deatil Error:", err)
 		render.Render(w, r, &TransactionHandlerFailed{
 			HttpCode: http.StatusBadRequest,
-			Message:  "transaction code not found",
+			Message:  ERR_TRANSACTION_CODE_NOT_FOUND_MSG,
 		})
 		return
 	}
@@ -101,7 +112,7 @@ func (transactionEndpoint *TransactionEndpoint) HandleCreateTransaction(w http.R
 		log.Println("source user valid transaction Error:", err)
 		render.Render(w, r, &TransactionHandlerFailed{
 			HttpCode: http.StatusInternalServerError,
-			Message:  "something went wrong",
+			Message:  ERR_INTERNAL_SERVER_MSG,
 		})
 		return
 	}
@@ -109,7 +120,7 @@ func (transactionEndpoint *TransactionEndpoint) HandleCreateTransaction(w http.R
 		log.Println("source user invalid for transaction:")
 		render.Render(w, r, &TransactionHandlerFailed{
 			HttpCode: http.StatusBadRequest,
-			Message:  "transaction not allowed",
+			Message:  ERR_TRANSACTION_NOT_ALLOWED_MSG,
 		})
 		return
 	}
@@ -120,7 +131,7 @@ func (transactionEndpoint *TransactionEndpoint) HandleCreateTransaction(w http.R
 		log.Println("destination account doesnot exist")
 		render.Render(w, r, &TransactionHandlerFailed{
 			HttpCode: http.StatusBadRequest,
-			Message:  "destination account not found",
+			Message:  ERR_DESTINATION_ACCOUNT_NOT_FOUND_MSG,
 		})
 		return
 	}
@@ -130,7 +141,7 @@ func (transactionEndpoint *TransactionEndpoint) HandleCreateTransaction(w http.R
 		log.Println("destination user valid for transaction err:", err)
 		render.Render(w, r, &TransactionHandlerFailed{
 			HttpCode: http.StatusInternalServerError,
-			Message:  "something went wrong",
+			Message:  ERR_INTERNAL_SERVER_MSG,
 		})
 		return
 	}
@@ -138,7 +149,7 @@ func (transactionEndpoint *TransactionEndpoint) HandleCreateTransaction(w http.R
 		log.Println("destination user invalid for transaction")
 		render.Render(w, r, &TransactionHandlerFailed{
 			HttpCode: http.StatusBadRequest,
-			Message:  "transaction not allowed",
+			Message:  ERR_TRANSACTION_NOT_ALLOWED_MSG,
 		})
 		return
 	}
@@ -148,7 +159,7 @@ func (transactionEndpoint *TransactionEndpoint) HandleCreateTransaction(w http.R
 		log.Println("transaction amount is less than minimum transactable amount")
 		render.Render(w, r, &TransactionHandlerFailed{
 			HttpCode: http.StatusBadRequest,
-			Message:  "amount does not reach the minimum transaction amount",
+			Message:  ERR_MINIMUM_AMOUNT_MSG,
 		})
 		return
 	}
@@ -161,7 +172,7 @@ func (transactionEndpoint *TransactionEndpoint) HandleCreateTransaction(w http.R
 			log.Println("otp credential not configured")
 			render.Render(w, r, &TransactionHandlerFailed{
 				HttpCode: http.StatusBadRequest,
-				Message:  "authorization method not configured",
+				Message:  ERR_AUTHORIZATION_METHOD_NOT_CONFIGURED_MSG,
 			})
 			return
 		}
@@ -172,7 +183,7 @@ func (transactionEndpoint *TransactionEndpoint) HandleCreateTransaction(w http.R
 			log.Println("pin credential not configured")
 			render.Render(w, r, &TransactionHandlerFailed{
 				HttpCode: http.StatusBadRequest,
-				Message:  "authorization method not configured",
+				Message:  ERR_AUTHORIZATION_METHOD_NOT_CONFIGURED_MSG,
 			})
 			return
 		}
@@ -180,10 +191,10 @@ func (transactionEndpoint *TransactionEndpoint) HandleCreateTransaction(w http.R
 		// print the pin
 		// log.Println("pin is", userSession.ConfiguredTransactionCredential.Pin.Pin)
 	default:
-		log.Println("unsupported authorization method")
+		log.Println(ERR_UNSUPPORTED_AUTHOROZATION_METHOD_MSG)
 		render.Render(w, r, &TransactionHandlerFailed{
 			HttpCode: http.StatusBadRequest,
-			Message:  "unsupported authorization method",
+			Message:  ERR_UNSUPPORTED_AUTHOROZATION_METHOD_MSG,
 		})
 		return
 	}
@@ -207,7 +218,7 @@ func (transactionEndpoint *TransactionEndpoint) HandleCreateTransaction(w http.R
 		log.Println("create transaction error:", err)
 		render.Render(w, r, &TransactionHandlerFailed{
 			HttpCode: http.StatusInternalServerError,
-			Message:  "something went wrong",
+			Message:  ERR_INTERNAL_SERVER_MSG,
 		})
 		return
 	}
@@ -236,7 +247,7 @@ func (transactionEndpoint *TransactionEndpoint) HandleVerifyTransaction(w http.R
 		log.Println("request decodeing err:", err)
 		render.Render(w, r, &TransactionHandlerFailed{
 			HttpCode: http.StatusInternalServerError,
-			Message:  "something went wrong",
+			Message:  ERR_INTERNAL_SERVER_MSG,
 		})
 		return
 	}
@@ -247,7 +258,7 @@ func (transactionEndpoint *TransactionEndpoint) HandleVerifyTransaction(w http.R
 		log.Println("userSession Error:", err)
 		render.Render(w, r, &TransactionHandlerFailed{
 			HttpCode: http.StatusInternalServerError,
-			Message:  "something went wrong",
+			Message:  ERR_INTERNAL_SERVER_MSG,
 		})
 		return
 	}
@@ -258,16 +269,16 @@ func (transactionEndpoint *TransactionEndpoint) HandleVerifyTransaction(w http.R
 		log.Println("get transaction error Error:", err)
 		render.Render(w, r, &TransactionHandlerFailed{
 			HttpCode: http.StatusInternalServerError,
-			Message:  "something went wrong",
+			Message:  ERR_INTERNAL_SERVER_MSG,
 		})
 		return
 	}
 	// check if the transaction not found
 	if tx == nil {
-		log.Println("transaction not found")
+		log.Println(ERR_TRANSACTION_NOT_FOUND_MSG)
 		render.Render(w, r, &TransactionHandlerFailed{
 			HttpCode: http.StatusNotFound,
-			Message:  "transaction not found",
+			Message:  ERR_TRANSACTION_NOT_FOUND_MSG,
 		})
 		return
 	}
@@ -277,7 +288,7 @@ func (transactionEndpoint *TransactionEndpoint) HandleVerifyTransaction(w http.R
 		log.Println("transaction doesnot belongs to user")
 		render.Render(w, r, &TransactionHandlerFailed{
 			HttpCode: http.StatusInternalServerError, // should be http.StatusForbidden
-			Message:  "something went wrong",
+			Message:  ERR_INTERNAL_SERVER_MSG,
 		})
 		return
 	}
@@ -287,25 +298,10 @@ func (transactionEndpoint *TransactionEndpoint) HandleVerifyTransaction(w http.R
 		log.Println("transaction verification already done")
 		render.Render(w, r, &TransactionHandlerFailed{
 			HttpCode: http.StatusBadRequest,
-			Message:  "verification process already happened",
+			Message:  ERR_VERIFICATION_PROCESS_ALREADY_HAPPENED_MSG,
 		})
 		return
 	}
-
-	// update the transaction state to unknown status
-	// if tx.State != domain.UnknownTransactionStatus {
-	// 	tx.State = domain.UnknownTransactionStatus
-	// 	// log.Printf("tx === %+v", *tx)
-	// 	err = transactionEndpoint.transactionService.UpdateTransaction(tx)
-	// 	if err != nil {
-	// 		log.Println("transaction state updates to UnknownTransactionStatus err:", err)
-	// 		render.Render(w, r, &TransactionHandlerFailed{
-	// 			HttpCode: http.StatusInternalServerError,
-	// 			Message:  "something went wrong",
-	// 		})
-	// 		return
-	// 	}
-	// }
 
 	// check the auth method pin or otp
 	switch tx.AuthorizationMethod {
@@ -317,7 +313,7 @@ func (transactionEndpoint *TransactionEndpoint) HandleVerifyTransaction(w http.R
 		log.Println("transaction authorization method not supported")
 		render.Render(w, r, &TransactionHandlerFailed{
 			HttpCode: http.StatusBadRequest,
-			Message:  "unsupported authorization method",
+			Message:  ERR_UNSUPPORTED_AUTHOROZATION_METHOD_MSG,
 		})
 		return
 	}
@@ -329,14 +325,14 @@ func (transactionEndpoint *TransactionEndpoint) HandleVerifyTransaction(w http.R
 			log.Println("transaction state update to failed err:", err)
 			render.Render(w, r, &TransactionHandlerFailed{
 				HttpCode: http.StatusInternalServerError,
-				Message:  "something went wrong",
+				Message:  ERR_INTERNAL_SERVER_MSG,
 			})
 			return
 		}
 		log.Println("credential validation failed:", err)
 		render.Render(w, r, &TransactionHandlerFailed{
 			HttpCode: http.StatusBadRequest,
-			Message:  "invalid credential",
+			Message:  ERR_INVALID_CREDENTIAL_MSG,
 		})
 		return
 	}
@@ -348,7 +344,7 @@ func (transactionEndpoint *TransactionEndpoint) HandleVerifyTransaction(w http.R
 		log.Println("transaction status update to success err:", err)
 		render.Render(w, r, &TransactionHandlerFailed{
 			HttpCode: http.StatusInternalServerError,
-			Message:  "something went wrong",
+			Message:  ERR_INTERNAL_SERVER_MSG,
 		})
 		return
 	}
