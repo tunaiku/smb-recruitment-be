@@ -32,3 +32,14 @@ type Transaction struct {
 	DestinationAccount  string
 	CreatedAt           time.Time
 }
+
+type MyTransactionService interface {
+	CreateTransaction(tx *Transaction) (string, error)
+	ReadTransaction(id string) (*Transaction, error)
+	UpdateTransaction(tx *Transaction) error
+}
+
+type TransactionRepository interface {
+	SaveTransaction(tx *Transaction) error
+	ReadTransaction(ID string) (*Transaction, error)
+}
